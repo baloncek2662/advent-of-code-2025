@@ -26,8 +26,8 @@ def part2(inp: str) -> str | int | None:
     for line in inp.splitlines():
         direction = line[:1]
         value = int(line[1:])
-        remainder = value % 100
-        zeroes_count += value // 100
+        quotient, remainder = divmod(value, 100)
+        zeroes_count += quotient
         start_pos = pos
         if direction == "R":
             pos += remainder
