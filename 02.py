@@ -1,5 +1,4 @@
 from adventofcode import AoC
-import textwrap
 
 
 def part1(inp: str) -> str | int | None:
@@ -37,9 +36,9 @@ def part2(inp: str) -> str | int | None:
             i_str_len = len(i_str)
             divisors = get_divisors(i_str_len)
             for div in divisors:
-                equal_parts = textwrap.wrap(i_str, div)
-                for ep in equal_parts:
-                    if ep != equal_parts[0]:
+                chunks_cnt = int(i_str_len / div)
+                for j in range(1, chunks_cnt):
+                    if i_str[:div] != i_str[j * div:(j+1) * div]:
                         break
                 else:
                     invalid_ids.append(i)
