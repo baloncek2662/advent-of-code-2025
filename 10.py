@@ -60,7 +60,19 @@ def part1(inp: str) -> str | int | None:
 
 
 def part2(inp: str) -> str | int | None:
-    return None
+    manuals = []
+    for line in inp.splitlines():
+        res = {}
+        lights = re.search(r"\[(.*)\]", line)
+        res["diag"] = [l == "#" for l in lights.group()[1:-1]]
+        buttons = re.findall(r"\((.*?)\)", line)
+        res["buttons"] = [[int(b) for b in button.split(",")] for button in buttons]
+        manuals.append(res)
+    total = 0
+    for m in manuals:
+        # min_presses = press(m["diag"], m["buttons"], None, set())
+        total += get_min_presses(m["diag"], m["buttons"])
+    return total
 
 
 aoc = AoC(part_1=part1, part_2=part2)
