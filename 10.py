@@ -2,6 +2,9 @@ from adventofcode import AoC
 import re
 import copy
 from collections import deque
+import numpy as np
+import scipy.optimize
+from scipy.optimize._constraints import LinearConstraint
 
 
 def is_diagram_after_moves_ok(diag: list[bool], moves):
@@ -14,7 +17,6 @@ def is_diagram_after_moves_ok(diag: list[bool], moves):
         state[m] = not state[m]
 
     if state == diag:
-        print("winning moves:", moves)
         return True
     return False
 
@@ -54,24 +56,37 @@ def part1(inp: str) -> str | int | None:
         manuals.append(res)
     total = 0
     for m in manuals:
-        # min_presses = press(m["diag"], m["buttons"], None, set())
         total += get_min_presses(m["diag"], m["buttons"])
     return total
+
+
+def get_milp(buttons, joltages):
+    c = np.ones(len(buttons), dtype=int)
+    b = np.array(joltages, dtype=int)
+    n_rows = len(joltages)
+    n_cols = len(buttons)
+    A = np.zeros((n_rows, n_cols), dtype=int)
+    for b_ix, button in enumerate(buttons):
+        for ix in button:
+            A[ix, b_ix] = 1
+    constraint = LinearConstraint(A, b, b)
+    integrality = np.ones_like(c)
+    res = scipy.optimize.milp(c=c, constraints=constraint, integrality=integrality)
+    return int(sum(res.x))
 
 
 def part2(inp: str) -> str | int | None:
     manuals = []
     for line in inp.splitlines():
         res = {}
-        lights = re.search(r"\[(.*)\]", line)
-        res["diag"] = [l == "#" for l in lights.group()[1:-1]]
         buttons = re.findall(r"\((.*?)\)", line)
-        res["buttons"] = [[int(b) for b in button.split(",")] for button in buttons]
+        res["buttons"] = tuple(tuple(int(b) for b in button.split(",")) for button in buttons)
+        joltages = re.search(r"\{(.*)\}", line)
+        res["joltages"] = tuple(int(j) for j in joltages.group()[1:-1].split(","))
         manuals.append(res)
     total = 0
     for m in manuals:
-        # min_presses = press(m["diag"], m["buttons"], None, set())
-        total += get_min_presses(m["diag"], m["buttons"])
+        total += get_milp(m["buttons"], m["joltages"])
     return total
 
 
@@ -83,6 +98,6 @@ expected_result = 7
 aoc.assert_p1(inp, expected_result)
 aoc.submit_p1()
 
-expected_result = None
+expected_result = 33
 aoc.assert_p2(inp, expected_result)
 aoc.submit_p2()
