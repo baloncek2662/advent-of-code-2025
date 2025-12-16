@@ -1,6 +1,9 @@
 from adventofcode import AoC
+from itertools import combinations
+import shapely
 
 CANDIDATES = []
+
 
 def part1(inp: str) -> str | int | None:
     coordinates = []
@@ -32,8 +35,7 @@ def area_valid(el, el_2, valid_coordinates):
     return True
 
 
-
-def part2(inp: str) -> str | int | None:
+def part2_too_slow(inp: str) -> str | int | None:
     coordinates = []
     for line in inp.splitlines():
         coordinates.append(tuple([int(el) for el in line.split(",")]))
@@ -106,6 +108,25 @@ def part2(inp: str) -> str | int | None:
     return max_area
 
 
+def part2(inp: str) -> str | int | None:
+    points = []
+    for line in inp.splitlines():
+        points.append(shapely.Point(int(el) for el in line.split(",")))
+    polygon = shapely.Polygon(points)
+    shapely.prepare(polygon)
+
+    # find larges rectangle in polygon which has corners on polygon points
+    pairs = combinations(points, 2)
+    max_area = 0
+    for p1, p2 in pairs:
+        rectangle = shapely.box(p1.x, p1.y, p2.x, p2.y)
+        if polygon.contains(rectangle):
+            area = (abs(p1.x - p2.x) + 1) * (abs(p1.y - p2.y) + 1)
+            if area > max_area:
+                max_area = area
+    return int(max_area)
+
+
 aoc = AoC(part_1=part1, part_2=part2)
 inp = """7,1
 11,1
@@ -119,6 +140,6 @@ expected_result = 50
 aoc.assert_p1(inp, expected_result)
 aoc.submit_p1()
 
-# expected_result = 24
-# aoc.assert_p2(inp, expected_result)
+expected_result = 24
+aoc.assert_p2(inp, expected_result)
 aoc.submit_p2()
